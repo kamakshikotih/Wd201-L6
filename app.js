@@ -1,14 +1,25 @@
 const express = require("express");
 const app = express();
+const path=require("path");
 const { Todo } = require("./models");
 const bodyParser = require("body-parser");
 app.use(bodyParser.json());
+app.set("view engine","ejs");
+app.use(express.static(path.join(__dirname, "public")));
+app.get("/", async (request, response) => {
+  const allTodos = await Todo.getTodos();
+  if (request.accepts("html")) {
+    response.render("index", {
+      title:"Todo_App",
+      allTodos,
+    });
+  } else {
+    response.json({
+      allTodos,});
 
-app.get("/", function (request, response) {
-  response.send("Hello World");
+    }
 });
-
-app.get("/todos", async function (_request, response) {
+app.get("/", async function (_request, response) {
   console.log("Processing list of all Todos ...");
   // FILL IN YOUR CODE HERE
 
@@ -16,15 +27,14 @@ app.get("/todos", async function (_request, response) {
   // Then, we have to respond with all Todos, like:
   // response.send(todos)
   try{
-    const alltodos= await Todo.findAll();
-    return response.json(alltodos);
+    const allTodos= await Todo.findAll();
+    return response.json(allTodos);
   }
   catch (error) {
     console.log(error);
     return response.status(422).json(error);
   }
 });
-
 app.get("/todos/:id", async function (request, response) {
   try {
     const todo = await Todo.findByPk(request.params.id);
@@ -35,7 +45,7 @@ app.get("/todos/:id", async function (request, response) {
   }
 });
 
-app.post("/todos", async function (request, response) {
+app.post("/", async function (request, response) {
   try {
     const todo = await Todo.addTodo(request.body);
     return response.json(todo);
